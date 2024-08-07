@@ -1,0 +1,87 @@
+[
+    {
+        "label": "time",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "time",
+        "description": "time",
+        "detail": "time",
+        "documentation": {}
+    },
+    {
+        "label": "pandas",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "pandas",
+        "description": "pandas",
+        "detail": "pandas",
+        "documentation": {}
+    },
+    {
+        "label": "WebDriver",
+        "importPath": "selenium.webdriver.chrome.webdriver",
+        "description": "selenium.webdriver.chrome.webdriver",
+        "isExtraImport": true,
+        "detail": "selenium.webdriver.chrome.webdriver",
+        "documentation": {}
+    },
+    {
+        "label": "Options",
+        "importPath": "selenium.webdriver.chrome.options",
+        "description": "selenium.webdriver.chrome.options",
+        "isExtraImport": true,
+        "detail": "selenium.webdriver.chrome.options",
+        "documentation": {}
+    },
+    {
+        "label": "By",
+        "importPath": "selenium.webdriver.common.by",
+        "description": "selenium.webdriver.common.by",
+        "isExtraImport": true,
+        "detail": "selenium.webdriver.common.by",
+        "documentation": {}
+    },
+    {
+        "label": "WebDriverWait",
+        "importPath": "selenium.webdriver.support.ui",
+        "description": "selenium.webdriver.support.ui",
+        "isExtraImport": true,
+        "detail": "selenium.webdriver.support.ui",
+        "documentation": {}
+    },
+    {
+        "label": "expected_conditions",
+        "importPath": "selenium.webdriver.support",
+        "description": "selenium.webdriver.support",
+        "isExtraImport": true,
+        "detail": "selenium.webdriver.support",
+        "documentation": {}
+    },
+    {
+        "label": "scroll_down_entire_page",
+        "kind": 2,
+        "importPath": "app.main",
+        "description": "app.main",
+        "peekOfCode": "def scroll_down_entire_page(driver: WebDriver, timeout: int):\n    last_height = driver.execute_script(\"return document.body.scrollHeight\")\n    while True:\n        driver.execute_script(\"window.scrollTo(0, document.body.scrollHeight);\")\n        new_height = driver.execute_script(\"return document.body.scrollHeight\")\n        if new_height == last_height:\n            break\n        last_height = new_height\n    time.sleep(timeout)\ndef scrape_indeed_jobs(position: str, location: str, page_count: int):",
+        "detail": "app.main",
+        "documentation": {}
+    },
+    {
+        "label": "scrape_indeed_jobs",
+        "kind": 2,
+        "importPath": "app.main",
+        "description": "app.main",
+        "peekOfCode": "def scrape_indeed_jobs(position: str, location: str, page_count: int):\n    base_url = f\"https://www.indeed.com/jobs?q={position}&l={location}\"\n    options = Options()\n    # options.add_argument(\"headless=new\")\n    driver = WebDriver(options=options)\n    driver.get(base_url)\n    wait = WebDriverWait(driver, 10)\n    # waiting for the page to load\n    wait.until(EC.visibility_of_element_located((By.CLASS_NAME, \"job_seen_beacon\")))\n    scroll_down_entire_page(driver, 3) # 3 second timeout after page scroll",
+        "detail": "app.main",
+        "documentation": {}
+    },
+    {
+        "label": "main",
+        "kind": 2,
+        "importPath": "app.main",
+        "description": "app.main",
+        "peekOfCode": "def main():\n    position = \"softwareenginner\"\n    page_count = 1\n    data = scrape_indeed_jobs(position, \"boston\", page_count)\n    # df = pd.DataFrame(data, columns=[\"title\", \"citation\", \"description\", \"url\"])\n    # df.to_csv(f\"{query}.csv\", index=False)\nif __name__ == \"__main__\":\n    main()",
+        "detail": "app.main",
+        "documentation": {}
+    }
+]
