@@ -27,8 +27,8 @@ def extract_vjk(url):
     vjk = url.split("vjk=")[1]
     return vjk
 
-def scrape_indeed_jobs(position: str, location: str, page_count: int) -> List:
-    base_url = f"https://www.indeed.com/jobs?q={position}&l={location}"
+def scrape_indeed_jobs(position: str, location: str, page_count: int, radius: int) -> List[str]:
+    base_url = f"https://www.indeed.com/jobs?q={position}&l={location}&radius={radius}"
 
     options = Options()
     # options.add_argument("--headless=new")
@@ -42,43 +42,56 @@ def scrape_indeed_jobs(position: str, location: str, page_count: int) -> List:
     post_data = set()
 
     try:
-        driver.get(base_url)
+        for page in range(page_count):
+            if page == 0:
+                url = base_url
+            else:
+                url = f"{base_url}&start={page * 10}"
 
-        cache = load_cache()
+            print(f"Scraping page {page + 1}: {url}")
+            driver.get(url)
 
-        wait = WebDriverWait(driver, 10)
+            cache = load_cache()
 
-        # waiting for url to load
-        wait.until(EC.url_contains("vjk="))
+            wait = WebDriverWait(driver, 10)
 
-        current_url = driver.current_url
+            # waiting for url to load
+            wait.until(EC.presence_of_element_located((By.CLASS_NAME, "job_seen_beacon")))
 
-        print(f"Scraping URL: {current_url}")
+            current_url = driver.current_url
+            print(f"Current URL: {current_url}")
 
-        vjk = extract_vjk(current_url)
+            vjk = extract_vjk(current_url)
 
-        if vjk in cache:
-            print(f"{vjk} found in cache, skipping url...")
-            driver.quit()
-            return cache[vjk]
+            if vjk in cache:
+                print(f"{vjk} found in cache, using cached data for this page...")
+                post_data.update(cache[vjk])
+                continue
 
-        posts = driver.find_elements(By.CLASS_NAME, "job_seen_beacon")
+            time.sleep(2)  # Add a small delay to ensure page is fully loaded
 
-        for post in posts:
-            a_tag = post.find_element(By.TAG_NAME, "a")
+            posts = driver.find_elements(By.CLASS_NAME, "job_seen_beacon")
+            print(f"Found {len(posts)} job posts on page {page + 1}")
 
-            href = a_tag.get_attribute("href")
+            page_data = set()
+            for post in posts:
+                try:
+                    a_tag = post.find_element(By.TAG_NAME, "a")
+                    href = a_tag.get_attribute("href")
+                    page_data.add(href)
+                except Exception as e:
+                    print(f"Error processing a job post: {e}")
 
-            post_data.add(href)
+            post_data.update(page_data)
+            cache[vjk] = list(page_data)
+            save_cache(cache)
 
     except Exception as e:
-        print(f"Error scraping {base_url}: {e}")
+        print(f"Error scraping {url}: {e}")
+        print(f"Page source: {driver.page_source}")
 
     finally:
         driver.quit()
-
-    cache[vjk] = list(post_data)
-    save_cache(cache)
 
     return list(post_data)
 
@@ -143,10 +156,9 @@ def scrape_job_posts(url: str):
 
 
 def main():
-    position = "software+engineer"
-    page_count = 1
+    position="software+engineer"
 
-    job_urls = scrape_indeed_jobs(position, "boston", page_count)
+    job_urls = scrape_indeed_jobs(position=position, location="Boston", page_count=3, radius=100)
 
     post_data = []
 
